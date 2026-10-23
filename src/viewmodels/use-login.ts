@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
-import type { LoginPayload } from "../models/login";
-import { loginUser } from "../services/loginService";
+import type { LoginPayload } from "../models/user";
+import { loginUser } from "../services/user_service";
 import { useAuth } from "../context/useAuth";
 
 export function useLoginViewModel() {

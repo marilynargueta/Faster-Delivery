@@ -1,5 +1,7 @@
-import type { UserResponse } from "../models/auth";
+import type { UserResponse } from "../models/user";
 
+
+// GRABAR LA INFORMACIÓN
 const TOKEN_KEY = "authToken";
 const USER_KEY = "authUser";
 
@@ -9,6 +11,7 @@ export function saveAuth(token: string, user: UserResponse, remember: boolean) {
   storage.setItem(USER_KEY, JSON.stringify(user));
 }
 
+//TRAER LA INFORMACIÓN
 export function getAuth() {
   const token = localStorage.getItem(TOKEN_KEY) ?? sessionStorage.getItem(TOKEN_KEY);
   const rawUser = localStorage.getItem(USER_KEY) ?? sessionStorage.getItem(USER_KEY);

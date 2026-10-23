@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { useRegisterViewModel } from "../hooks/useRegisterViewModel";
+import { useRegisterViewModel } from "../viewmodels/use-register";
 
 type RegisterPageProps = {
   onNavigateToLogin: () => void;

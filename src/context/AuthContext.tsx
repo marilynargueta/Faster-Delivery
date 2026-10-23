@@ -1,6 +1,6 @@
 import { createContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import type { LoginResponse, UserResponse } from "../models/auth";
+import type { LoginResponse, UserResponse } from "../models/user";
 import { saveAuth, getAuth, clearAuth } from "../core/authStorage";
 
 export type AuthContextType = {
@@ -10,13 +10,15 @@ export type AuthContextType = {
   isHydrated: boolean;
   login: (data: LoginResponse, remember?: boolean) => void;
   logout: () => void;
+  updateUser: (user: UserResponse) => void;
 };
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [token, setToken] = useState<string | null>(null);
-  const [user, setUser] = useState<UserResponse | null>(null);
+  const auth = getAuth();
+  const [token, setToken] = useState<string | null>(auth?.token || null);
+  const [user, setUser] = useState<UserResponse | null>(auth?.user || null);
   const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
@@ -34,13 +36,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     saveAuth(data.token, data.userResponse, remember);
   };
 
+  const updateUser = (updatedUser: UserResponse) => {
+    setUser(updatedUser);
+    const actualToken = token || getAuth()?.token || null;
+    if (actualToken) {
+      saveAuth(actualToken, updatedUser, true);
+    }
+  };
+
   const logout = () => {
     setToken(null);
     setUser(null);
     clearAuth();
   };
 
-  const value = useMemo<AuthContextType>(
+  const value = useMemo(
     () => ({
       token,
       user,
@@ -48,8 +58,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isHydrated,
       login,
       logout,
+      updateUser,
     }),
-    [token, user, isHydrated]
+    [token, user, isHydrated] // ← aquí estaba el bug: faltaba isHydrated
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

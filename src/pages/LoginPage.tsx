@@ -1,5 +1,5 @@
 import React from "react";
-import { useLoginViewModel } from "../hooks/useLoginViewModel";
+import { useLoginViewModel } from "../viewmodels/use-login";
 
 type LoginPageProps = {
   onNavigateToRegister: () => void;
