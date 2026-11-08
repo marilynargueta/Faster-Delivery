@@ -2,6 +2,7 @@ import type React from "react";
 import { Check } from "lucide-react";
 import { useProductViewModel } from "../viewmodels/use-product";
 import { useCategoryViewModel } from "../viewmodels/use-category";
+import { FormAlert, FieldError } from "./FormAlert";
 
 interface ProductFormProps {
   onCancel: () => void;
@@ -12,11 +13,15 @@ const MAX_DESCRIPTION = 500;
 
 const labelClass = "block text-xs font-bold text-slate-700 uppercase mb-2";
 const inputClass =
-  "w-full rounded-lg border border-slate-200 py-3 px-4 text-xs text-slate-700 placeholder-slate-400 focus:border-indigo-600 focus:outline-none";
+  "w-full rounded-lg border py-3 px-4 text-xs text-slate-700 placeholder-slate-400 focus:outline-none";
 const moneyInputClass =
-  "w-full rounded-lg border border-slate-200 py-3 pl-8 pr-4 text-xs text-slate-700 placeholder-slate-400 focus:border-indigo-600 focus:outline-none";
+  "w-full rounded-lg border py-3 pl-8 pr-4 text-xs text-slate-700 placeholder-slate-400 focus:outline-none";
 const moneySymbolClass =
   "absolute left-3.5 top-1/2 -translate-y-1/2 text-sm text-slate-700";
+
+/** Pone el borde rojo si el campo tiene error */
+const withBorder = (base: string, error?: string) =>
+  `${base} ${error ? "border-red-400 focus:border-red-500" : "border-slate-200 focus:border-indigo-600"}`;
 
 export const ProductForm: React.FC<ProductFormProps> = ({
   onCancel,
@@ -24,15 +29,18 @@ export const ProductForm: React.FC<ProductFormProps> = ({
 
   const {
     form,
-    hanleChange,
+    handleChange,
     submit,
     isLoading,
+    error,
+    success,
+    fieldErrors,
   } = useProductViewModel();
 
   const { categories, isLoading: loadingCategories } = useCategoryViewModel();
 
   return (
-    <form onSubmit={submit} className="max-w-4xl space-y-6">
+    <form onSubmit={submit} noValidate className="max-w-4xl space-y-6">
       <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
         <div className="border-b border-slate-100 p-6">
           <h3 className="text-lg font-bold text-slate-800">
@@ -45,6 +53,10 @@ export const ProductForm: React.FC<ProductFormProps> = ({
         </div>
 
         <div className="p-6 space-y-6">
+          {/* ALERTAS GENERALES DEL FORMULARIO */}
+          <FormAlert type="error" message={error} />
+          <FormAlert type="success" message={success} />
+
           <div>
             <label htmlFor="nombre" className={labelClass}>
               Nombre del producto
@@ -53,14 +65,16 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               id="nombre"
               type="text"
               value={form.name}
-              onChange={(e) => hanleChange("name", e.target.value)}
-              required
+              onChange={(e) => handleChange("name", e.target.value)}
               placeholder="Ej. Hamburguesa Doble Carne"
-              className={inputClass}
+              className={withBorder(inputClass, fieldErrors.name)}
             />
-            <p className="mt-1.5 text-xs text-slate-400">
-              Este nombre aparecerá visible en el catálogo para tus clientes
-            </p>
+            <FieldError message={fieldErrors.name} />
+            {!fieldErrors.name && (
+              <p className="mt-1.5 text-xs text-slate-400">
+                Solo letras. Este nombre aparecerá visible en el catálogo para tus clientes
+              </p>
+            )}
           </div>
 
           <div>
@@ -69,10 +83,9 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             </label>
             <select
               id="categoria"
-              required
               value={form.categoryId}
-              onChange={(e) => hanleChange("categoryId", e.target.value)}
-              className={inputClass}
+              onChange={(e) => handleChange("categoryId", e.target.value)}
+              className={withBorder(inputClass, fieldErrors.categoryId)}
             >
               <option value="">
                 {loadingCategories
@@ -85,6 +98,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                 </option>
               ))}
             </select>
+            <FieldError message={fieldErrors.categoryId} />
           </div>
 
           <div>
@@ -94,15 +108,19 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             <input
               id="codigo"
               type="text"
-              required
+              inputMode="numeric"
+              maxLength={13}
               value={form.sku}
-              onChange={(e) => hanleChange("sku", e.target.value)}
+              onChange={(e) => handleChange("sku", e.target.value)}
               placeholder="Ej. 752145897525"
-              className={inputClass}
+              className={withBorder(inputClass, fieldErrors.sku)}
             />
-            <span className="text-[10px] text-slate-400 block mt-1">
-              Codigo interno de inventario
-            </span>
+            <FieldError message={fieldErrors.sku} />
+            {!fieldErrors.sku && (
+              <span className="text-[10px] text-slate-400 block mt-1">
+                Solo números, entre 8 y 13 dígitos
+              </span>
+            )}
           </div>
 
           <div>
@@ -111,15 +129,16 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             </label>
             <textarea
               id="descripcion"
-              required
+              maxLength={MAX_DESCRIPTION}
               value={form.description}
-              onChange={(e) => hanleChange("description", e.target.value)}
+              onChange={(e) => handleChange("description", e.target.value)}
               placeholder="Describe la presentacion y notas de preparacion"
-              className={`${inputClass} h-32`}
+              className={`${withBorder(inputClass, fieldErrors.description)} h-32`}
             />
+            <FieldError message={fieldErrors.description} />
             <div className="flex items-start justify-between gap-4 mt-1">
               <span className="text-[10px] text-slate-400">
-                Asegurate de incluir advertencias o especificaciones de
+                Mínimo 10 caracteres. Incluye advertencias o especificaciones de
                 porciones para los repartidores
               </span>
               <span className="text-[10px] text-slate-400 whitespace-nowrap">
@@ -137,16 +156,15 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                 <span className={moneySymbolClass}>$</span>
                 <input
                   id="precioRegular"
-                  value={form.regularPrice}
-                  onChange={(e) => hanleChange("regularPrice", e.target.value)}
                   type="text"
-                  step="0.01"
-                  min="0"
-                  required
-                  placeholder="0.0"
-                  className={moneyInputClass}
+                  inputMode="decimal"
+                  value={form.regularPrice}
+                  onChange={(e) => handleChange("regularPrice", e.target.value)}
+                  placeholder="0.00"
+                  className={withBorder(moneyInputClass, fieldErrors.regularPrice)}
                 />
               </div>
+              <FieldError message={fieldErrors.regularPrice} />
             </div>
 
             <div>
@@ -158,15 +176,14 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                 <input
                   id="precioOferta"
                   type="text"
+                  inputMode="decimal"
                   value={form.offerPrice}
-                  onChange={(e) => hanleChange("offerPrice", e.target.value)}
-                  step="0.01"
-                  min="0"
-                  required
-                  placeholder="0.0"
-                  className={moneyInputClass}
+                  onChange={(e) => handleChange("offerPrice", e.target.value)}
+                  placeholder="0.00"
+                  className={withBorder(moneyInputClass, fieldErrors.offerPrice)}
                 />
               </div>
+              <FieldError message={fieldErrors.offerPrice} />
             </div>
 
             <div>
@@ -176,14 +193,13 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               <input
                 id="stockInicial"
                 type="text"
-                step="1"
+                inputMode="numeric"
                 value={form.initialStock}
-                onChange={(e) => hanleChange("initialStock", e.target.value)}
-                min="0"
-                required
-                placeholder="0.0"
-                className={inputClass}
+                onChange={(e) => handleChange("initialStock", e.target.value)}
+                placeholder="0"
+                className={withBorder(inputClass, fieldErrors.initialStock)}
               />
+              <FieldError message={fieldErrors.initialStock} />
             </div>
 
             <div>
@@ -193,14 +209,13 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               <input
                 id="stockMinimo"
                 type="text"
-                step="1"
+                inputMode="numeric"
                 value={form.minStockAlert}
-                onChange={(e) => hanleChange("minStockAlert", e.target.value)}
-                min="0"
-                required
-                placeholder="0.0"
-                className={inputClass}
+                onChange={(e) => handleChange("minStockAlert", e.target.value)}
+                placeholder="0"
+                className={withBorder(inputClass, fieldErrors.minStockAlert)}
               />
+              <FieldError message={fieldErrors.minStockAlert} />
             </div>
           </div>
 
@@ -214,7 +229,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             </button>
             <button
               type="submit"
-              className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 px-5 py-2 text-xs font-semibold text-white"
+              disabled={isLoading}
+              className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 px-5 py-2 text-xs font-semibold text-white"
             >
               <Check size={14} />
               {isLoading ? "Creando..." : "Crear Producto"}

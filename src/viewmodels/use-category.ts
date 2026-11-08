@@ -45,6 +45,7 @@ export function useCategoryViewModel(onSuccessCallback?: () => void) {
         token,
       );
       setSuccess("Categoria creada con exito ");
+      window.dispatchEvent(new Event("categories:changed"));
       setForm({ name: "", description: "" });
       if (onSuccessCallback) {
         onSuccessCallback();
@@ -90,4 +91,40 @@ useEffect(() => {
     categories,
     refreshCategories:fetchCategories
   }
+}
+
+export function useCategoriesList() {
+    const { token } = useAuth()
+    const [categories, setCategories] = useState<CategoryResponse[]>([])
+    const [isLoading, setIsLoading] = useState<boolean>(false)
+    const [error, setError] = useState<string>("")
+
+    const fetchCategories = useCallback(async () => {
+        try {
+            setIsLoading(true)
+            setError("")
+            const data = await getCategories(token)
+            setCategories(data)
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Error al obtener las categorias")
+        } finally {
+            setIsLoading(false)
+        }
+    }, [token])
+
+    useEffect(() => {
+        fetchCategories()
+    }, [fetchCategories])
+
+    useEffect(() => {
+        window.addEventListener("categories:changed", fetchCategories)
+        return () => window.removeEventListener("categories:changed", fetchCategories)
+    }, [fetchCategories])
+
+    return {
+        categories,
+        isLoading,
+        error,
+        refetch: fetchCategories
+    }
 }

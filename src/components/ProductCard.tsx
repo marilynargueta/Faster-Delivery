@@ -1,17 +1,22 @@
 import { ShoppingCart, Heart } from "lucide-react";
 import type { Product } from "../models/product";
+import type { ProductResponse } from "../models/product";
 
 interface ProductCardProps {
-  product: Product;
+  product: ProductResponse
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+  const regularPrice = Number(product.regularPrice) || 0;
+  const offerPrice = Number(product.offerPrice) || 0;
+  const hasOffer = offerPrice > 0 && offerPrice < regularPrice;
+
   return (
     <article className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
       {/* Imagen */}
       <div className="relative">
         <img
-          src={product.image}
+          src={product.imageUrl}
           alt={product.name}
           className="h-32 w-full object-cover"
         />
@@ -21,9 +26,20 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         {/* Nombre y precio */}
         <div className="flex items-start justify-between gap-2">
           <h3 className="text-sm font-bold text-slate-800">{product.name}</h3>
-          <span className="whitespace-nowrap text-xs font-bold">
-            ${product.price.toFixed(2)}
-          </span>
+          {hasOffer ? (
+            <div className="flex flex-col items-end">
+              <span className="whitespace-nowrap text-xs font-bold text-red-600">
+                ${offerPrice.toFixed(2)}
+              </span>
+              <span className="whitespace-nowrap text-[10px] text-slate-400 line-through">
+                ${regularPrice.toFixed(2)}
+              </span>
+            </div>
+          ) : (
+            <span className="whitespace-nowrap text-xs font-bold">
+              ${regularPrice.toFixed(2)}
+            </span>
+          )}
         </div>
 
         {/* Descripción */}

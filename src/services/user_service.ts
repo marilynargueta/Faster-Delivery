@@ -52,3 +52,26 @@ export async function udpateUserProfile(
   return response.json();
 }
 
+ export async function validateToken(token: string | null): Promise<boolean> {
+  if (!token) return false
+
+  const headerToken = token?.startsWith("Bearer ") ? token : `Bearer ${token}`
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/validate`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: headerToken
+      }
+    })
+    if (!response.ok) {
+      return false
+    }
+
+    const data = await response.json()
+    return Boolean(data?.valid)
+  } catch (error) {
+    console.error("Error validando token:", error)
+    return false
+  }
+}

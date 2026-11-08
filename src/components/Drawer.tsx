@@ -1,12 +1,15 @@
 import { Fragment } from "react";
 import { NavLink } from "react-router-dom";
-import { LayoutGrid, Pizza, Salad, Cake, Coffee, X, FolderPlus } from "lucide-react";
+import { LayoutGrid, Pizza, Salad, Cake, Coffee, X, FolderPlus, Loader2, Tag } from "lucide-react";
 import { PackagePlus } from "lucide-react";
+import { useCategoriesList } from "../viewmodels/use-category";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 interface DrawerProps {
   isOpen: boolean;
   onClose: () => void;
- 
+  selectedCategoryId?: number | string | null;
+  onSelectCategory?: (categoryId: number | string | null) => void;
 }
 
 const menuItems = [
@@ -17,11 +20,36 @@ const menuItems = [
   { label: "Beverages", icon: <Coffee size={18} /> },
 ];
 
+const getCategoryIcon = (name: string) => {
+  const lower = name.toLowerCase()
+  if (lower.includes("pizza") || lower.includes("fast") || lower.includes("comida")) return Pizza
+  if (lower.includes("salad") || lower.includes("healthy") || lower.includes("saludable")) return Salad
+  if (lower.includes("cake") || lower.includes("dessert") || lower.includes("postre")) return Cake
+  if (lower.includes("coffee") || lower.includes("beverage") || lower.includes("bebida")) return Coffee
+  return Tag
+}
+
 export const Drawer: React.FC<DrawerProps> = ({
-  isOpen,
-  onClose,
- 
+    isOpen,
+    onClose,
+    selectedCategoryId = null,
+    onSelectCategory,
 }) => {
+
+  const navigate = useNavigate();
+  const  [searParams] = useSearchParams();
+  const currentCategoryId = searParams.get("categoryId") || null;
+  
+    const { categories, isLoading, error } = useCategoriesList()
+
+    const handleSelectCategory = (categoryId: number | string | null) => {
+        if (categoryId === null) {
+            navigate("/catalog");
+        } else {
+            navigate(`/catalog?categoryId=${categoryId}`);
+        }
+        
+    }
 
   return (
 
@@ -93,29 +121,61 @@ export const Drawer: React.FC<DrawerProps> = ({
   </NavLink>
 </div>
 
-{/** MENÚ DE FILTROS */}
-<p className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">
-  Filters
-</p>
-          <ul className="space-y-2">
-            {menuItems.map((item, index) => (
-              <li key={item.label}>
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors
-                  ${
-                    index === 0
-                      ? "bg-cyan-100 font-semibold text-cyan-700"
-                      : "text-slate-600 hover:bg-slate-100"
-                  }`}
-                >
-                  <span>{item.icon}</span>
-                  <span>{item.label}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
+{/** Menu de filtros */}
+<div>
+  <p className="mb-3 text-xs font-bold uppercase text-slate-400">Filters</p>
+  <ul className="space-y-1">
+    <li>
+      <button
+        type="button"
+        onClick={() => handleSelectCategory(1)}
+        className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors ${
+          selectedCategoryId === null
+            ? "bg-cyan-100 font-semibold text-cyan-700"
+            : "text-slate-600 hover:bg-slate-100"
+        }`}
+      >
+        <LayoutGrid size={18} />
+        All categories
+      </button>
+    </li>
+
+    {isLoading && (
+      <li className="flex items-center gap-2 px-3 py-3 text-xs text-slate-400">
+        <Loader2 className="animate-spin" size={16} />
+        Cargando categorías...
+      </li>
+    )}
+
+    {error && !isLoading && (
+      <li className="px-3 py-2 text-xs text-red-500">
+        {error}
+      </li>
+    )}
+
+    {!isLoading && !error && categories.map((category) => {
+      const Icon = getCategoryIcon(category.name)
+      const isSelected = currentCategoryId === String (category.id)
+      return (
+        <li key={category.id}>
+          <button
+            type="button"
+            onClick={() => handleSelectCategory(category.id)}
+            className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors ${
+              isSelected
+                ? "bg-cyan-100 font-semibold text-cyan-700"
+                : "text-slate-600 hover:bg-slate-100"
+            }`}
+          >
+            <Icon size={18} />
+            <span className="truncate">{category.name}</span>
+          </button>
+        </li>
+      )
+    })}
+  </ul>
+</div>
+
         </nav>
       </aside>
     </Fragment>

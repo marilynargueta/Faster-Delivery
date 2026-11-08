@@ -2,6 +2,7 @@ import { createContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import type { LoginResponse, UserResponse } from "../models/user";
 import { saveAuth, getAuth, clearAuth } from "../core/authStorage";
+import { validateToken } from "../services/user_service";
 
 export type AuthContextType = {
   token: string | null;
@@ -22,12 +23,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
-    const auth = getAuth();
-    if (auth) {
-      setToken(auth.token);
-      setUser(auth.user);
+    async function verfifySession() {
+      try {
+        const currentAuth = getAuth()
+        if (currentAuth?.token) {
+          const isValid = await validateToken(currentAuth.token);
+          if (isValid) {
+            setToken(currentAuth.token);
+            setUser(currentAuth.user);
+          } else {
+            setToken(null);
+            setUser(null);
+            clearAuth();
+          }
+        } else {
+          setToken(null);
+          setUser(null);
+        }
+      } finally {
+        setIsHydrated(true)
+      }
     }
-    setIsHydrated(true);
+    verfifySession()
+
   }, []);
 
   const login = (data: LoginResponse, remember: boolean = true) => {
@@ -60,7 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       logout,
       updateUser,
     }),
-    [token, user, isHydrated] // ← aquí estaba el bug: faltaba isHydrated
+    [token, user, isHydrated]  
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

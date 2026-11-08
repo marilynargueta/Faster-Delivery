@@ -6,6 +6,8 @@ import { DashboardPage } from "./pages/DashboardPage";
 import { MainLayout } from "./components/MainLayout";
 import { CategoriesPage } from "./pages/CategoriesPage";
 import { ProductCreatePage } from "./pages/ProductCreatePage";
+import { ProfilePage } from "./pages/ProfilePage";
+
 
 //GUARDAR LA RUTA PRIVADA
 const ProtectedRoute = () => {
@@ -40,6 +42,7 @@ function App() {
             <Route path="/catalog" element={<DashboardPage />} />
             <Route path="/categories/create" element={<CategoriesPage />} />
             <Route path="/products/create" element={<ProductCreatePage />} />
+          <Route path="/profile" element={<ProfilePage onBackToDashboard={() => { window.location.href = "/catalog"; }} />} />
           </Route>
         </Route>
       </Routes>

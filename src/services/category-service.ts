@@ -1,6 +1,31 @@
 import { API_BASE_URL } from "../api/apiBase";
 import type { CategoryPayload, CategoryResponse } from "../models/category";
 
+const LOCAL_CATEGORIES_KEY = "local-categories";
+
+function getLocalCategories(): CategoryResponse[] {
+  try {
+    const saved = localStorage.getItem(LOCAL_CATEGORIES_KEY);
+    return saved ? JSON.parse(saved) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveLocalCategory(category: CategoryResponse) {
+  try {
+    const current = getLocalCategories();
+    const exists = current.some((c) => c.id === category.id);
+    if (!exists) {
+      localStorage.setItem(
+        LOCAL_CATEGORIES_KEY,
+        JSON.stringify([...current, category]),
+      );
+    }
+  } catch (error) {
+    console.log("Error al guardar la categoria local", error);
+  }
+}
 
 export async function createCategory(
   payload: CategoryPayload,
@@ -34,7 +59,9 @@ export async function createCategory(
     throw new Error(message);
   }
 
-  return response.json();
+  const created: CategoryResponse = await response.json();
+  saveLocalCategory(created);
+  return created;
 }
 
 export async function getCategories(
@@ -66,5 +93,10 @@ export async function getCategories(
     throw new Error(message);
   } 
 
-  return response.json();
+  const apiCategories: CategoryResponse[] = await response.json();
+  const localCategories = getLocalCategories().filter(
+    (local) => !apiCategories.some((api) => api.id === local.id),
+  );
+
+  return [...apiCategories, ...localCategories];
 }
