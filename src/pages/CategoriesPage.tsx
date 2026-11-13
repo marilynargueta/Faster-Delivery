@@ -14,7 +14,7 @@ export const CategoriesPage: React.FC = () => {
         </p>
       </div>
 
-      <CategoryForm onCancel={() => navigate("/catalog")} />
+   <CategoryForm onCancel={() => navigate("/catalog")} onSuccess={() => {}} />
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import { ShoppingCart, Heart } from "lucide-react";
-import type { Product } from "../models/product";
+import { useNavigate } from "react-router-dom";
 import type { ProductResponse } from "../models/product";
 
 interface ProductCardProps {
@@ -7,12 +7,16 @@ interface ProductCardProps {
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+  const navigate = useNavigate();
   const regularPrice = Number(product.regularPrice) || 0;
   const offerPrice = Number(product.offerPrice) || 0;
   const hasOffer = offerPrice > 0 && offerPrice < regularPrice;
 
   return (
-    <article className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+    <article
+      onClick={() => navigate(`/products/${product.id}`)}
+      className="cursor-pointer overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md"
+    >
       {/* Imagen */}
       <div className="relative">
         <img
@@ -51,6 +55,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         <div className="mt-4 flex gap-2">
           <button
             type="button"
+            onClick={(e) => e.stopPropagation()}
             className="flex flex-1 items-center justify-center gap-2 rounded bg-indigo-600 px-2 py-2 text-xs font-bold text-white hover:bg-indigo-700"
           >
             <ShoppingCart size={14} />
@@ -59,6 +64,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
           <button
             type="button"
+            onClick={(e) => e.stopPropagation()}
             className="rounded border border-slate-300 px-3 text-slate-500 hover:bg-slate-100"
           >
             <Heart size={14} />
