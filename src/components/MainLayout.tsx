@@ -1,6 +1,6 @@
 import type React from "react";
 import { useState } from "react";
-import { Menu, UserRound } from "lucide-react";
+import { Menu, UserRound, ShoppingCart } from "lucide-react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
 import { Drawer } from "../components/Drawer"; // ajusta la ruta
@@ -33,6 +33,18 @@ export const MainLayout: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => navigate("/cart")}
+              aria-label="Ver carrito"
+              className="relative mr-2 p-2 text-indigo-700 hover:text-indigo-800 transition-colors"
+            >
+              <ShoppingCart size={24} />
+              <span className="absolute -right-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-indigo-700 text-[11px] font-bold text-white">
+                3
+              </span>
+            </button>
+
             <button
               type="button"
               onClick={() => navigate("/profile")}

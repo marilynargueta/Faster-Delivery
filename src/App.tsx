@@ -8,6 +8,7 @@ import { CategoriesPage } from "./pages/CategoriesPage";
 import { ProductCreatePage } from "./pages/ProductCreatePage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { ProductDetailPage } from "./pages/ProductDetailPage";
+import { CartPage } from "./pages/CartPage";
 
 
 //GUARDAR LA RUTA PRIVADA
@@ -54,6 +55,7 @@ function App() {
             <Route path="/categories/create" element={<CategoriesPage />} />
             <Route path="/products/create" element={<ProductCreatePage />} />
             <Route path="/products/:id" element={<ProductDetailPage />} />
+            <Route path="/cart" element={<CartPage />} />
             <Route path="/profile" element={<ProfilePage onBackToDashboard={() => { window.location.href = "/catalog"; }} />} />
           </Route>
         </Route>
